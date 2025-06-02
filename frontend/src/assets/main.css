@@ -1,0 +1,177 @@
+@import './base.css';
+
+/* Global Theme Variables */
+:root {
+  --color-bg: #f4f5f7;
+  --color-text: #222;
+  --color-card: #fff;
+  --color-shadow: 0 1px 4px rgba(60,60,60,0.07);
+  --color-primary: #41b883;
+  --color-secondary: #e0e0e0;
+}
+
+.light-theme {
+  --color-bg: #f4f5f7;
+  --color-text: #222;
+  --color-card: #fff;
+  --color-shadow: 0 1px 4px rgba(60,60,60,0.07);
+  --color-primary: #41b883;
+  --color-secondary: #e0e0e0;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.dark-theme {
+  --color-bg: #23272f;
+  --color-text: #fff;
+  --color-card: #2c3e50;
+  --color-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  --color-primary: #41b883;
+  --color-secondary: #34495e;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.dark-theme, .dark-theme * {
+  color: var(--color-text) !important;
+}
+
+body, html {
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: background 0.3s, color 0.3s;
+}
+
+.card, .list-column, .modal, .card-modal-layout {
+  background: var(--color-card) !important;
+  color: var(--color-text) !important;
+  box-shadow: var(--color-shadow) !important;
+  transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+}
+
+/* Example for buttons and inputs */
+.btn {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(60,60,60,0.07);
+}
+
+.btn-primary, .dark-theme .btn-primary {
+  background: #41b883 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.btn-primary:hover, .dark-theme .btn-primary:hover {
+  background: #369f6b !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(60,60,60,0.13), 0 4px 24px rgba(0,0,0,0.25);
+}
+
+.btn-secondary {
+  background: #e0e0e0;
+  color: #34495e;
+  border: none;
+}
+
+.btn-secondary:hover {
+  background: #bdbdbd;
+  color: #222;
+}
+
+.theme-toggle-btn {
+  background: transparent !important;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  margin-right: 1rem;
+  color: #ffd700;
+  transition: color 0.2s, background 0.2s;
+  box-shadow: none;
+}
+
+.theme-toggle-btn:hover {
+  color: #41b883;
+  background: rgba(65,184,131,0.08);
+}
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-weight: normal;
+}
+
+a,
+.green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+  padding: 3px;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    display: flex;
+    place-items: center;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 2rem;
+  }
+}
+
+.dark-theme .card-modal-layout,
+.dark-theme .card-modal-layout * {
+  color: #fff !important;
+  border-color: var(--color-secondary) !important;
+}
+
+.dark-theme input,
+.dark-theme textarea,
+.dark-theme select,
+.dark-theme .modal input,
+.dark-theme .modal textarea,
+.dark-theme .modal select,
+.dark-theme .card-modal-layout input,
+.dark-theme .card-modal-layout textarea,
+.dark-theme .card-modal-layout select{
+  color: #fff !important;
+  background: var(--color-card) !important;
+  border-color: var(--color-secondary) !important;
+}
+
+.dark-theme .btn {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.35) !important;
+}
+.dark-theme .btn-primary {
+  background: #41b883 !important;
+  color: #fff !important;
+  border: none !important;
+}
+.dark-theme .btn-primary:hover {
+  background: #369f6b !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(60,60,60,0.13), 0 4px 24px rgba(0,0,0,0.25);
+}
+.dark-theme .btn-secondary {
+  background: #34495e !important;
+  color: #fff !important;
+  border: none !important;
+}
+.dark-theme .btn-secondary:hover {
+  background: #23272f !important;
+  color: #fff !important;
+}
