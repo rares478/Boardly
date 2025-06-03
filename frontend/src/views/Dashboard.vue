@@ -7,86 +7,86 @@
         <img src="/src/assets/logo.svg" alt="No boards" class="dashboard-empty-illustration" />
         <p class="dashboard-empty-text">No boards yet. Click the <b>+</b> button to create your first board!</p>
       </div>
-      <div v-else class="boards-list">
-        <div v-for="board in boards" :key="board._id" class="card board-card" :style="board.coverImage ? { backgroundImage: `url('${board.coverImage}')` } : {}">
-          <div class="board-accent"></div>
+      <div v-else class="dashboard-boards-list">
+        <div v-for="board in boards" :key="board._id" class="dashboard-board-card" :style="board.coverImage ? { backgroundImage: `url('${board.coverImage}')` } : {}">
+          <div class="dashboard-board-accent"></div>
           <!-- 3-dots menu button -->
-          <button class="board-menu-btn" @click.stop="openEditModal(board)">
+          <button class="dashboard-board-menu-btn" @click.stop="openEditModal(board)">
             <span>⋮</span>
           </button>
           <!-- Members button -->
-          <button class="board-members-btn" @click.stop="openMembersModal(board)">
+          <button class="dashboard-board-members-btn" @click.stop="openMembersModal(board)">
             <span>👥</span> Members
           </button>
-          <router-link :to="`/board/${board._id}`" class="board-link" :class="{ 'board-link-overlay': board.coverImage }">{{ board.title }}</router-link>
+          <router-link :to="`/board/${board._id}`" class="dashboard-board-link" :class="{ 'dashboard-board-link-overlay': board.coverImage }">{{ board.title }}</router-link>
         </div>
       </div>
     </div>
     <!-- Floating Action Button -->
-    <button class="fab" @click="showModal = true" title="Create Board">+</button>
+    <button class="dashboard-fab" @click="showModal = true" title="Create Board">+</button>
     <!-- Modal -->
-    <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
-      <div class="modal-content">
+    <div v-if="showModal" class="dashboard-modal-backdrop" @click.self="showModal = false">
+      <div class="dashboard-modal-content">
         <h3>Create New Board</h3>
-        <form @submit.prevent="createBoard" class="modal-form">
+        <form @submit.prevent="createBoard" class="dashboard-modal-form">
           <input v-model="newBoardTitle" placeholder="Board title" required autofocus />
-          <div class="modal-actions">
-            <button type="submit" class="btn btn-primary">Create</button>
-            <button type="button" class="btn btn-secondary" @click="showModal = false">Cancel</button>
+          <div class="dashboard-modal-actions">
+            <button type="submit" class="dashboard-btn-primary">Create</button>
+            <button type="button" class="dashboard-btn-secondary" @click="showModal = false">Cancel</button>
           </div>
         </form>
       </div>
     </div>
     <!-- Edit Board Modal -->
-    <div v-if="showEditModal" class="modal-backdrop" @click.self="closeEditModal">
-      <div class="modal-content">
+    <div v-if="showEditModal" class="dashboard-modal-backdrop" @click.self="closeEditModal">
+      <div class="dashboard-modal-content">
         <h3>Edit Board</h3>
-        <form @submit.prevent="saveBoardEdit" class="modal-form">
+        <form @submit.prevent="saveBoardEdit" class="dashboard-modal-form">
           <input v-model="editBoardTitle" placeholder="Board title" required autofocus />
           <input v-model="editBoardDescription" placeholder="Description (optional)" />
           <input v-model="editBoardCoverImage" placeholder="Cover image URL (optional)" />
-          <div class="modal-actions">
-            <button type="submit" class="btn btn-primary">Save</button>
-            <button type="button" class="btn btn-secondary" @click="closeEditModal">Cancel</button>
+          <div class="dashboard-modal-actions">
+            <button type="submit" class="dashboard-btn-primary">Save</button>
+            <button type="button" class="dashboard-btn-secondary" @click="closeEditModal">Cancel</button>
           </div>
         </form>
       </div>
     </div>
     <!-- Members Modal -->
-    <div v-if="showMembersModal" class="modal-backdrop" @click.self="closeMembersModal">
-      <div class="modal-content">
+    <div v-if="showMembersModal" class="dashboard-modal-backdrop" @click.self="closeMembersModal">
+      <div class="dashboard-modal-content">
         <h3>Board Members</h3>
         <div v-if="membersLoading">Loading...</div>
         <div v-else>
-          <div class="members-list">
-            <div v-for="member in boardMembers" :key="member._id" class="member-row">
-              <span class="member-avatar">{{ member.username.charAt(0).toUpperCase() }}</span>
-              <span class="member-name">{{ member.username }} <span class="member-email">({{ member.email }})</span></span>
-              <button v-if="canRemoveMember(member)" class="btn btn-member-remove" @click="removeMember(member._id)">Remove</button>
+          <div class="dashboard-members-list">
+            <div v-for="member in boardMembers" :key="member._id" class="dashboard-member-row">
+              <span class="dashboard-member-avatar">{{ member.username.charAt(0).toUpperCase() }}</span>
+              <span class="dashboard-member-name">{{ member.username }} <span class="dashboard-member-email">({{ member.email }})</span></span>
+              <button v-if="canRemoveMember(member)" class="dashboard-btn-member-remove" @click="removeMember(member._id)">Remove</button>
             </div>
           </div>
-          <div v-if="pendingInvites.length" class="pending-list">
-            <div class="pending-title">Pending Invitations</div>
-            <div v-for="user in pendingInvites" :key="user._id" class="member-row pending-row">
-              <span class="member-avatar">{{ user.username ? user.username.charAt(0).toUpperCase() : '?' }}</span>
-              <span class="member-name">{{ user.username || user._id }} <span class="member-email">({{ user.email || '' }})</span></span>
-              <span class="pending-badge">Pending</span>
+          <div v-if="pendingInvites.length" class="dashboard-pending-list">
+            <div class="dashboard-pending-title">Pending Invitations</div>
+            <div v-for="user in pendingInvites" :key="user._id" class="dashboard-member-row dashboard-pending-row">
+              <span class="dashboard-member-avatar">{{ user.username ? user.username.charAt(0).toUpperCase() : '?' }}</span>
+              <span class="dashboard-member-name">{{ user.username || user._id }} <span class="dashboard-member-email">({{ user.email || '' }})</span></span>
+              <span class="dashboard-pending-badge">Pending</span>
               <button
                 v-if="auth.user && (boardOwnerId === auth.user._id || user.invitedBy === auth.user._id)"
-                class="btn btn-cancel-invite"
+                class="dashboard-btn-cancel-invite"
                 @click="cancelInvite(user._id)"
                 title="Cancel invitation"
               >🗑️</button>
             </div>
           </div>
-          <div class="add-member-section">
-            <input v-model="userSearch" placeholder="Search users..." @input="searchUsers" class="member-search-input" />
-            <div v-if="userSearchLoading" class="search-results">Searching...</div>
-            <div v-else-if="userSearchResults.length" class="search-results">
-              <div v-for="user in userSearchResults" :key="user._id" class="search-result-row">
-                <span>{{ user.username }} <span class="member-email">({{ user.email }})</span></span>
+          <div class="dashboard-add-member-section">
+            <input v-model="userSearch" placeholder="Search users..." @input="searchUsers" class="dashboard-member-search-input" />
+            <div v-if="userSearchLoading" class="dashboard-search-results">Searching...</div>
+            <div v-else-if="userSearchResults.length" class="dashboard-search-results">
+              <div v-for="user in userSearchResults" :key="user._id" class="dashboard-search-result-row">
+                <span>{{ user.username }} <span class="dashboard-member-email">({{ user.email }})</span></span>
                 <button
-                  class="btn btn-member-add"
+                  class="dashboard-btn-member-add"
                   :disabled="pendingInvites.includes(user._id)"
                   @click="addMember(user._id)"
                   v-tooltip="pendingInvites.includes(user._id) ? 'User already invited' : 'Send invitation to join this board'"
@@ -95,11 +95,11 @@
                 </button>
               </div>
             </div>
-            <div v-else-if="userSearchNoResults && userSearch" class="search-results">No users found.</div>
+            <div v-else-if="userSearchNoResults && userSearch" class="dashboard-search-results">No users found.</div>
           </div>
         </div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" @click="closeMembersModal">Close</button>
+        <div class="dashboard-modal-actions">
+          <button type="button" class="dashboard-btn-secondary" @click="closeMembersModal">Close</button>
         </div>
       </div>
     </div>
@@ -107,7 +107,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import api from '@/api';
 import { useToast } from 'vue-toastification';
 import { useAuthStore } from '@/store';
@@ -252,7 +252,6 @@ async function removeMember(userId) {
 }
 function canRemoveMember(member) {
   // Only allow removing if you are the owner or it's yourself
-  // (You can enhance this logic as needed)
   return true;
 }
 
@@ -305,12 +304,12 @@ onMounted(fetchBoards);
   color: #888;
   margin-top: 2rem;
 }
-.boards-list {
+.dashboard-boards-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 2rem;
 }
-.board-card {
+.dashboard-board-card {
   position: relative;
   display: flex;
   align-items: flex-end;
@@ -324,11 +323,11 @@ onMounted(fetchBoards);
   background-size: cover;
   background-position: center;
 }
-.board-card:hover {
+.dashboard-board-card:hover {
   box-shadow: 0 8px 32px rgba(60,60,60,0.16);
   transform: translateY(-2px) scale(1.02);
 }
-.board-card .board-accent {
+.dashboard-board-card .dashboard-board-accent {
   width: 7px;
   height: 100%;
   background: linear-gradient(135deg, #41b883 60%, #34495e 100%);
@@ -336,8 +335,7 @@ onMounted(fetchBoards);
   margin-right: 1.2rem;
   z-index: 2;
 }
-/* 3-dots menu button */
-.board-menu-btn {
+.dashboard-board-menu-btn {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -357,14 +355,13 @@ onMounted(fetchBoards);
   z-index: 10;
   pointer-events: auto;
 }
-.board-card:hover .board-menu-btn {
+.dashboard-board-card:hover .dashboard-board-menu-btn {
   opacity: 1;
 }
-.board-menu-btn:focus {
+.dashboard-board-menu-btn:focus {
   opacity: 1;
 }
-/* Board cover image removed, now background */
-.board-link {
+.dashboard-board-link {
   position: relative;
   z-index: 2;
   font-size: 1.3rem;
@@ -381,18 +378,18 @@ onMounted(fetchBoards);
   padding-top: 0;
   pointer-events: auto;
 }
-.board-link:hover {
+.dashboard-board-link:hover {
   background: #f4f5f7;
 }
-.board-link-overlay {
+.dashboard-board-link-overlay {
   color: #fff !important;
   text-shadow: 0 2px 8px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.18);
   background: none;
 }
-.board-card[style*='background-image'] {
+.dashboard-board-card[style*='background-image'] {
   background-color: #222;
 }
-.board-card[style*='background-image']::after {
+.dashboard-board-card[style*='background-image']::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -400,7 +397,7 @@ onMounted(fetchBoards);
   z-index: 1;
   pointer-events: none;
 }
-.board-card[style*='background-image'] .board-accent {
+.dashboard-board-card[style*='background-image'] .dashboard-board-accent {
   background: rgba(0,0,0,0.18);
 }
 .dashboard-empty {
@@ -423,7 +420,7 @@ onMounted(fetchBoards);
   text-align: center;
   color: #888;
 }
-.fab {
+.dashboard-fab {
   position: fixed;
   right: 2.5rem;
   bottom: 2.5rem;
@@ -443,12 +440,12 @@ onMounted(fetchBoards);
   justify-content: center;
   transition: background 0.18s, box-shadow 0.18s, transform 0.13s;
 }
-.fab:hover {
+.dashboard-fab:hover {
   background: linear-gradient(135deg, #34495e 60%, #41b883 100%);
   box-shadow: 0 8px 32px rgba(60,60,60,0.22);
   transform: scale(1.07);
 }
-.modal-backdrop {
+.dashboard-modal-backdrop {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.18);
@@ -457,7 +454,7 @@ onMounted(fetchBoards);
   align-items: center;
   justify-content: center;
 }
-.modal-content {
+.dashboard-modal-content {
   background: var(--color-card);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(60,60,60,0.18);
@@ -468,27 +465,27 @@ onMounted(fetchBoards);
   flex-direction: column;
   align-items: center;
 }
-.modal-form {
+.dashboard-modal-form {
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
   width: 100%;
 }
-.modal-form input {
+.dashboard-modal-form input {
   padding: 0.7rem 1.2rem;
   border-radius: 8px;
   border: 1.5px solid var(--color-secondary);
   font-size: 1.1rem;
-  background: var(--color-background);
+  background: var(--color-card);
   color: var(--color-text);
 }
-.modal-actions {
+.dashboard-modal-actions {
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
   margin-top: 1.2rem;
 }
-.btn-primary {
+.dashboard-btn-primary {
   background: #41b883;
   color: #fff;
   border: none;
@@ -498,10 +495,10 @@ onMounted(fetchBoards);
   cursor: pointer;
   transition: background 0.2s;
 }
-.btn-primary:hover {
+.dashboard-btn-primary:hover {
   background: #34495e;
 }
-.btn-secondary {
+.dashboard-btn-secondary {
   background: #e0e0e0;
   color: #34495e;
   border: none;
@@ -511,7 +508,7 @@ onMounted(fetchBoards);
   cursor: pointer;
   transition: background 0.2s;
 }
-.btn-secondary:hover {
+.dashboard-btn-secondary:hover {
   background: #bdbdbd;
   color: #222;
 }
@@ -519,24 +516,23 @@ onMounted(fetchBoards);
   .dashboard-container {
     padding: 1rem 0.2rem 4rem 0.2rem;
   }
-  .boards-list {
+  .dashboard-boards-list {
     grid-template-columns: 1fr;
     gap: 1.2rem;
   }
-  .fab {
+  .dashboard-fab {
     right: 1.2rem;
     bottom: 1.2rem;
     width: 52px;
     height: 52px;
     font-size: 2rem;
   }
-  .modal-content {
+  .dashboard-modal-content {
     padding: 1.2rem 0.7rem 1.2rem 0.7rem;
     min-width: 0;
   }
 }
-/* Members button */
-.board-members-btn {
+.dashboard-board-members-btn {
   position: absolute;
   bottom: 10px;
   right: 10px;
@@ -552,20 +548,20 @@ onMounted(fetchBoards);
   opacity: 0.92;
   transition: background 0.15s, color 0.15s;
 }
-.board-members-btn:hover {
+.dashboard-board-members-btn:hover {
   background: #e0e0e0;
   color: #41b883;
 }
-.members-list {
+.dashboard-members-list {
   margin-bottom: 1rem;
 }
-.member-row {
+.dashboard-member-row {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 0.5rem;
 }
-.member-avatar {
+.dashboard-member-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -577,14 +573,14 @@ onMounted(fetchBoards);
   align-items: center;
   justify-content: center;
 }
-.member-name {
+.dashboard-member-name {
   flex: 1;
 }
-.member-email {
+.dashboard-member-email {
   color: #888;
   font-size: 0.95em;
 }
-.btn-member-remove {
+.dashboard-btn-member-remove {
   background: #e74c3c !important;
   color: #fff !important;
   border: none;
@@ -595,14 +591,14 @@ onMounted(fetchBoards);
   font-weight: 600;
   box-shadow: 0 1px 4px rgba(60,60,60,0.07);
 }
-.btn-member-remove:hover {
+.dashboard-btn-member-remove:hover {
   background: #c0392b !important;
   color: #fff !important;
 }
-.add-member-section {
+.dashboard-add-member-section {
   margin-top: 1.2rem;
 }
-.search-results {
+.dashboard-search-results {
   margin-top: 0.5rem;
   background: var(--color-card);
   color: var(--color-text);
@@ -610,14 +606,14 @@ onMounted(fetchBoards);
   box-shadow: 0 1px 4px rgba(60,60,60,0.07);
   padding: 0.5rem 0.7rem;
 }
-.search-result-row {
+.dashboard-search-result-row {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 0.4rem;
   justify-content: space-between;
 }
-.btn-member-add {
+.dashboard-btn-member-add {
   background: #41b883 !important;
   color: #fff !important;
   border: none;
@@ -628,11 +624,11 @@ onMounted(fetchBoards);
   font-weight: 600;
   box-shadow: 0 1px 4px rgba(60,60,60,0.07);
 }
-.btn-member-add:hover {
+.dashboard-btn-member-add:hover {
   background: #369f6b !important;
   color: #fff !important;
 }
-.member-search-input {
+.dashboard-member-search-input {
   flex: 1;
   padding: 0.5rem 1rem;
   border: 1.5px solid var(--color-secondary);
@@ -643,7 +639,7 @@ onMounted(fetchBoards);
   box-shadow: 0 1px 4px rgba(60, 60, 60, 0.04);
   transition: border 0.2s, box-shadow 0.2s;
 }
-.pending-badge {
+.dashboard-pending-badge {
   background: #ffd700;
   color: #222;
   border-radius: 6px;
@@ -652,21 +648,21 @@ onMounted(fetchBoards);
   font-weight: 700;
   margin-left: 0.5em;
 }
-.pending-list {
+.dashboard-pending-list {
   margin-top: 1.2rem;
   border-top: 1px solid #eee;
   padding-top: 1rem;
 }
-.pending-title {
+.dashboard-pending-title {
   font-weight: 700;
   color: #888;
   margin-bottom: 0.7em;
   font-size: 1.08em;
 }
-.pending-row {
+.dashboard-pending-row {
   opacity: 0.7;
 }
-.btn-cancel-invite {
+.dashboard-btn-cancel-invite {
   background: #fff3f3 !important;
   color: #e74c3c !important;
   border: none;
@@ -677,7 +673,7 @@ onMounted(fetchBoards);
   margin-left: 0.5em;
   transition: background 0.18s, color 0.18s;
 }
-.btn-cancel-invite:hover {
+.dashboard-btn-cancel-invite:hover {
   background: #e74c3c !important;
   color: #fff !important;
 }

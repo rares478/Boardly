@@ -41,7 +41,7 @@ body, html {
   transition: background 0.3s, color 0.3s;
 }
 
-.card, .list-column, .modal, .card-modal-layout {
+.list-column, .modal, .card-modal-layout {
   background: var(--color-card) !important;
   color: var(--color-text) !important;
   box-shadow: var(--color-shadow) !important;
@@ -174,4 +174,43 @@ a,
 .dark-theme .btn-secondary:hover {
   background: #23272f !important;
   color: #fff !important;
+}
+
+.dark-theme .navbar-btn-primary {
+  background: #41b883 !important;
+  color: #fff !important;
+  border: none !important;
+}
+.dark-theme .navbar-btn-primary:hover {
+  background: #369f6b !important;
+  color: #fff !important;
+}
+.dark-theme .navbar-btn-secondary {
+  background: #34495e !important;
+  color: #fff !important;
+  border: none !important;
+}
+.dark-theme .navbar-btn-secondary:hover {
+  background: #23272f !important;
+  color: #fff !important;
+}
+
+.navbar-btn-primary {
+  background: #41b883 !important;
+  color: #fff !important;
+  border: none !important;
+}
+.navbar-btn-primary:hover {
+  background: #369f6b !important;
+  color: #fff !important;
+}
+
+.navbar-btn-secondary {
+  background: #e0e0e0 !important;
+  color: #34495e !important;
+  border: none !important;
+}
+.navbar-btn-secondary:hover {
+  background: #bdbdbd !important;
+  color: #222 !important;
 }

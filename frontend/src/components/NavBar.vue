@@ -1,59 +1,59 @@
 <template>
   <nav class="navbar">
-    <router-link to="/dashboard" class="nav-logo">Boardly</router-link>
-    <div class="nav-links">
-      <button class="theme-toggle-btn" @click="toggleTheme" :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+    <router-link to="/dashboard" class="navbar-logo">Boardly</router-link>
+    <div class="navbar-links">
+      <button class="navbar-theme-toggle-btn" @click="toggleTheme" :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
         <span v-if="isDark">🌙</span>
         <span v-else>☀️</span>
       </button>
       <template v-if="auth.token">
-        <div class="nav-user-dropdown-wrapper" ref="dropdownRef">
-          <button class="nav-user-btn" @click="dropdownOpen = !dropdownOpen">
+        <div class="navbar-user-dropdown-wrapper" ref="dropdownRef">
+          <button class="navbar-user-btn" @click="dropdownOpen = !dropdownOpen">
             <span>{{ auth.user?.username }}</span>
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <div v-if="dropdownOpen" class="nav-user-dropdown">
-            <div class="dropdown-item notifications-item" @click="showNotificationsModal = true; dropdownOpen = false; fetchInvitations();">
+          <div v-if="dropdownOpen" class="navbar-user-dropdown">
+            <div class="navbar-dropdown-item navbar-notifications-item" @click="showNotificationsModal = true; dropdownOpen = false; fetchInvitations();">
               <span>Notifications</span>
-              <span v-if="notificationCount > 0" :class="['notification-badge', { 'pulse': badgePulse }]">{{ notificationCount }}</span>
+              <span v-if="notificationCount > 0" :class="['navbar-notification-badge', { 'pulse': badgePulse }]">{{ notificationCount }}</span>
             </div>
-            <router-link to="/dashboard" class="dropdown-item" @click="dropdownOpen = false">Dashboard</router-link>
-            <a href="#" class="dropdown-item" @click.prevent="logout">Logout</a>
+            <router-link to="/dashboard" class="navbar-dropdown-item" @click="dropdownOpen = false">Dashboard</router-link>
+            <a href="#" class="navbar-dropdown-item" @click.prevent="logout">Logout</a>
           </div>
         </div>
       </template>
       <template v-else>
-        <router-link to="/login" class="nav-btn nav-btn-outline">Login</router-link>
-        <router-link to="/register" class="nav-btn nav-btn-filled">Register</router-link>
+        <router-link to="/login" class="navbar-btn navbar-btn-outline">Login</router-link>
+        <router-link to="/register" class="navbar-btn navbar-btn-filled">Register</router-link>
       </template>
     </div>
     <!-- Notifications Modal -->
-    <div v-if="showNotificationsModal" class="modal-backdrop" @click.self="showNotificationsModal = false">
-      <div class="modal-content notifications-modal">
+    <div v-if="showNotificationsModal" class="navbar-modal-backdrop" @click.self="showNotificationsModal = false">
+      <div class="navbar-modal-content navbar-notifications-modal">
         <h3>Invitations</h3>
-        <div v-if="loadingInvites" class="notif-loading">Loading...</div>
-        <div v-else-if="errorInvites" class="notif-error">{{ errorInvites }}</div>
-        <div v-else-if="invitations.length === 0" class="notif-empty">
-          <img src="/src/assets/empty-invite.svg" alt="No invites" class="notif-empty-img" />
+        <div v-if="loadingInvites" class="navbar-notif-loading">Loading...</div>
+        <div v-else-if="errorInvites" class="navbar-notif-error">{{ errorInvites }}</div>
+        <div v-else-if="invitations.length === 0" class="navbar-notif-empty">
+          <img src="/src/assets/empty-invite.svg" alt="No invites" class="navbar-notif-empty-img" />
           <div>No invitations.</div>
         </div>
-        <div v-else class="notif-list">
-          <div v-for="invite in invitations" :key="invite._id" class="notif-item">
-            <div class="notif-info">
-              <div class="notif-board-thumb" v-if="invite.board?.coverImage">
+        <div v-else class="navbar-notif-list">
+          <div v-for="invite in invitations" :key="invite._id" class="navbar-notif-item">
+            <div class="navbar-notif-info">
+              <div class="navbar-notif-board-thumb" v-if="invite.board?.coverImage">
                 <img :src="invite.board.coverImage" alt="Board cover" />
               </div>
               <b>{{ invite.board?.title || 'Board' }}</b>
-              <span>from <span class="notif-avatar">{{ invite.fromUser?.username?.charAt(0).toUpperCase() }}</span> <b>{{ invite.fromUser?.username }}</b></span>
+              <span>from <span class="navbar-notif-avatar">{{ invite.fromUser?.username?.charAt(0).toUpperCase() }}</span> <b>{{ invite.fromUser?.username }}</b></span>
             </div>
-            <div class="notif-actions">
-              <button class="btn btn-primary" @click="handleAccept(invite._id)">Accept</button>
-              <button class="btn btn-secondary" @click="handleDecline(invite._id)">Decline</button>
+            <div class="navbar-notif-actions">
+              <button class="navbar-btn navbar-btn-primary" @click="handleAccept(invite._id)">Accept</button>
+              <button class="navbar-btn navbar-btn-secondary" @click="handleDecline(invite._id)">Decline</button>
             </div>
           </div>
         </div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" @click="showNotificationsModal = false">Close</button>
+        <div class="navbar-modal-actions">
+          <button type="button" class="navbar-btn navbar-btn-secondary" @click="showNotificationsModal = false">Close</button>
         </div>
       </div>
     </div>
@@ -180,18 +180,18 @@ const logout = () => {
   color: #fff;
   margin-bottom: 0;
 }
-.nav-logo {
+.navbar-logo {
   font-weight: bold;
   color: var(--color-primary) !important;
   font-size: 1.5rem;
   text-decoration: none;
 }
-.nav-links {
+.navbar-links {
   display: flex;
   gap: 1rem;
   align-items: center;
 }
-.theme-toggle-btn {
+.navbar-theme-toggle-btn {
   background: transparent !important;
   border: none;
   font-size: 1.3rem;
@@ -201,15 +201,15 @@ const logout = () => {
   transition: color 0.2s, background 0.2s;
   box-shadow: none;
 }
-.theme-toggle-btn:hover {
+.navbar-theme-toggle-btn:hover {
   color: #41b883;
   background: rgba(65,184,131,0.08);
 }
-.nav-user-dropdown-wrapper {
+.navbar-user-dropdown-wrapper {
   position: relative;
   display: inline-block;
 }
-.nav-user-btn {
+.navbar-user-btn {
   background: none;
   border: none;
   color: #41b883;
@@ -223,10 +223,10 @@ const logout = () => {
   border-radius: 6px;
   transition: background 0.15s;
 }
-.nav-user-btn:hover, .nav-user-btn:focus {
+.navbar-user-btn:hover, .navbar-user-btn:focus {
   background: rgba(65,184,131,0.08);
 }
-.nav-user-dropdown {
+.navbar-user-dropdown {
   position: absolute;
   right: 0;
   top: 110%;
@@ -241,7 +241,7 @@ const logout = () => {
   flex-direction: column;
   gap: 0.2rem;
 }
-.dropdown-item {
+.navbar-dropdown-item {
   padding: 0.7rem 1.2rem;
   cursor: pointer;
   color: var(--color-text);
@@ -255,14 +255,14 @@ const logout = () => {
   align-items: center;
   gap: 0.5rem;
 }
-.dropdown-item:hover {
+.navbar-dropdown-item:hover {
   background: var(--color-bg);
   color: var(--color-primary);
 }
-.notifications-item {
+.navbar-notifications-item {
   justify-content: space-between;
 }
-.notification-badge {
+.navbar-notification-badge {
   background: #e74c3c;
   color: #fff;
   border-radius: 10px;
@@ -272,7 +272,7 @@ const logout = () => {
   margin-left: 0.5em;
   transition: box-shadow 0.2s, transform 0.2s;
 }
-.notification-badge.pulse {
+.navbar-notification-badge.pulse {
   animation: badge-pulse 0.6s;
 }
 @keyframes badge-pulse {
@@ -280,7 +280,7 @@ const logout = () => {
   60% { box-shadow: 0 0 0 8px #e74c3c33; transform: scale(1.18); }
   100% { box-shadow: 0 0 0 0 #e74c3c00; transform: scale(1); }
 }
-.nav-btn {
+.navbar-btn {
   display: inline-block;
   font-size: 1rem;
   font-weight: 600;
@@ -292,26 +292,26 @@ const logout = () => {
   cursor: pointer;
   text-align: center;
 }
-.nav-btn-outline {
+.navbar-btn-outline {
   background: transparent;
   color: #fff;
   border: 2px solid #fff;
 }
-.nav-btn-outline:hover, .nav-btn-outline:focus {
+.navbar-btn-outline:hover, .navbar-btn-outline:focus {
   background: rgba(255,255,255,0.12);
   color: #fff;
 }
-.nav-btn-filled {
+.navbar-btn-filled {
   background: var(--color-primary);
   color: #fff;
   border: 2px solid var(--color-primary);
 }
-.nav-btn-filled:hover, .nav-btn-filled:focus {
+.navbar-btn-filled:hover, .navbar-btn-filled:focus {
   background: #369f6b;
   border-color: #369f6b;
   color: #fff;
 }
-.modal-backdrop {
+.navbar-modal-backdrop {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.25);
@@ -320,7 +320,7 @@ const logout = () => {
   align-items: center;
   justify-content: center;
 }
-.modal-content.notifications-modal {
+.navbar-modal-content.navbar-notifications-modal {
   background: var(--color-card);
   color: var(--color-text);
   border-radius: 14px;
@@ -333,13 +333,13 @@ const logout = () => {
   overflow-y: auto;
   position: relative;
 }
-.notif-list {
+.navbar-notif-list {
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
   margin: 1.2rem 0 0.5rem 0;
 }
-.notif-item {
+.navbar-notif-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -348,21 +348,21 @@ const logout = () => {
   padding: 0.8rem 1.1rem;
   box-shadow: 0 1px 4px rgba(60,60,60,0.07);
 }
-.notif-info {
+.navbar-notif-info {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
 }
-.notif-actions {
+.navbar-notif-actions {
   display: flex;
   gap: 0.7rem;
 }
-.notif-loading, .notif-error, .notif-empty {
+.navbar-notif-loading, .navbar-notif-error, .navbar-notif-empty {
   margin: 1.5rem 0;
   text-align: center;
   color: #888;
 }
-.notif-board-thumb {
+.navbar-notif-board-thumb {
   width: 38px;
   height: 38px;
   border-radius: 7px;
@@ -370,12 +370,12 @@ const logout = () => {
   margin-bottom: 0.3em;
   box-shadow: 0 1px 4px rgba(60,60,60,0.10);
 }
-.notif-board-thumb img {
+.navbar-notif-board-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.notif-avatar {
+.navbar-notif-avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -388,7 +388,7 @@ const logout = () => {
   font-size: 1em;
   margin-right: 0.3em;
 }
-.notif-empty-img {
+.navbar-notif-empty-img {
   width: 70px;
   opacity: 0.7;
   margin-bottom: 0.7em;

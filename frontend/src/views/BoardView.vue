@@ -1,17 +1,17 @@
 <template>
   <div class="board-view-container">
-    <h2>{{ board?.title }}</h2>
-    <div v-if="loading">Loading...</div>
-    <div v-else class="lists-container">
+    <h2 class="board-view-title">{{ board?.title }}</h2>
+    <div v-if="loading" class="board-view-loading">Loading...</div>
+    <div v-else class="board-view-lists-container">
       <vuedraggable v-model="lists" group="lists" item-key="_id" direction="horizontal" @end="onListDrop">
         <template #item="{ element: list }">
-          <div class="list-column card">
-            <h3>{{ list.title }}</h3>
+          <div class="board-view-list-column board-view-card">
+            <h3 class="board-view-list-title">{{ list.title }}</h3>
             <vuedraggable v-model="list.cards" :group="cardGroup" :item-key="'_id'" @end="e => onCardDrop(list, e)">
               <template #item="{ element: card }">
-                <div class="card-item card" @click="openCard(card._id)">
-                  <div class="card-labels">
-                    <span v-for="(label, i) in card.labels" :key="i" class="card-label-badge" :style="{ backgroundColor: label.color }">
+                <div class="board-view-card-item board-view-card" @click="openCard(card._id)">
+                  <div class="board-view-card-labels">
+                    <span v-for="(label, i) in card.labels" :key="i" class="board-view-card-label-badge" :style="{ backgroundColor: label.color }">
                       <!-- No label name, just color -->
                     </span>
                   </div>
@@ -19,16 +19,16 @@
                 </div>
               </template>
             </vuedraggable>
-            <form @submit.prevent="addCard(list)" class="add-card-form">
-              <input v-model="newCardTitles[list._id]" placeholder="Add card" />
-              <button type="submit" class="btn">Add</button>
+            <form @submit.prevent="addCard(list)" class="board-view-add-card-form">
+              <input v-model="newCardTitles[list._id]" placeholder="Add card" class="board-view-add-card-input" />
+              <button type="submit" class="board-view-btn">Add</button>
             </form>
           </div>
         </template>
       </vuedraggable>
-      <form @submit.prevent="addList" class="add-list-form card">
-        <input v-model="newListTitle" placeholder="Add list" />
-        <button type="submit" class="btn">Add List</button>
+      <form @submit.prevent="addList" class="board-view-add-list-form board-view-card">
+        <input v-model="newListTitle" placeholder="Add list" class="board-view-add-list-input" />
+        <button type="submit" class="board-view-btn">Add List</button>
       </form>
     </div>
     <CardDetails v-if="showCardModal" :cardId="selectedCardId" @close="closeCard" @updated="fetchLists" />
@@ -95,7 +95,7 @@ const onListDrop = async () => {
   await fetchLists();
 };
 
-const onCardDrop = async (list, e) => {
+const onCardDrop = async (list) => {
   const cardOrder = list.cards.map(c => c._id);
   await api.patch(`/api/cards/reorder/${list._id}`, { cardOrder, targetListId: list._id });
   await fetchLists();
@@ -121,7 +121,7 @@ onMounted(fetchBoard);
   background: var(--color-bg);
   border-radius: 12px;
 }
-.lists-container {
+.board-view-lists-container {
   display: flex;
   flex-direction: row;
   gap: 1.5rem;
@@ -130,7 +130,7 @@ onMounted(fetchBoard);
   padding-bottom: 1rem;
   white-space: nowrap;
 }
-.list-column {
+.board-view-list-column {
   background: var(--color-card);
   border-radius: 8px;
   min-width: 270px;
@@ -142,24 +142,38 @@ onMounted(fetchBoard);
   flex-direction: column;
   gap: 1rem;
 }
-.card-item {
+.board-view-card-item {
+  position: relative;
   background: var(--color-card);
   border-radius: 6px;
   margin-bottom: 0.5rem;
-  padding: 0.7rem 1rem;
-  box-shadow: 0 1px 4px rgba(60,60,60,0.07);
+  padding: 0.7rem 1rem 0.7rem 1.7rem;
+  box-shadow: 0 2px 8px rgba(60,60,60,0.10);
   font-size: 1rem;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.13s;
+  border: 1.5px solid var(--color-secondary);
+  overflow: hidden;
 }
-.card-item:hover {
-  box-shadow: 0 4px 16px rgba(60,60,60,0.13);
+.board-view-card-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 6px;
+  border-radius: 6px 0 0 6px;
+  background: #41b883;
+  opacity: 0.85;
 }
-.add-list-form, .add-card-form {
+.board-view-card-item:hover {
+  box-shadow: 0 8px 24px rgba(65,184,131,0.18), 0 2px 8px rgba(60,60,60,0.10);
+  border-color: #41b883;
+  transform: scale(1.03);
+}
+.board-view-add-list-form, .board-view-add-card-form {
   display: flex;
   gap: 0.5rem;
   align-items: center;
 }
-.add-list-form input, .add-card-form input {
+.board-view-add-list-form input, .board-view-add-card-form input {
   flex: 1;
   padding: 0.5rem 1rem;
   border: 1.5px solid var(--color-secondary);
@@ -170,18 +184,18 @@ onMounted(fetchBoard);
   box-shadow: 0 1px 4px rgba(60,60,60,0.04);
   transition: border 0.2s, box-shadow 0.2s;
 }
-.add-list-form input:focus, .add-card-form input:focus {
+.board-view-add-list-form input:focus, .board-view-add-card-form input:focus {
   border-color: var(--color-primary);
   outline: none;
   box-shadow: 0 2px 8px rgba(65,184,131,0.10);
 }
-.card-labels {
+.board-view-card-labels {
   display: flex;
   gap: 0.3rem;
   margin-bottom: 0.3rem;
   flex-wrap: wrap;
 }
-.card-label-badge {
+.board-view-card-label-badge {
   display: inline-block;
   min-width: 24px;
   height: 7px;
@@ -190,5 +204,21 @@ onMounted(fetchBoard);
   font-size: 0;
   color: transparent;
   margin-bottom: 2px;
+}
+.board-view-btn {
+  background: #41b883;
+  color: #fff;
+  border: 1.5px solid var(--color-secondary);
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  font-size: 1rem;
+  box-shadow: 0 1px 4px rgba(60,60,60,0.07);
+}
+.board-view-btn:hover {
+  background: #34495e;
+  border-color: #41b883;
 }
 </style> 
