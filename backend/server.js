@@ -14,7 +14,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     'https://boardly-psi.vercel.app',
-    'https://boardly-git-server-rares-projects-5c5d3702.vercel.app'
+    'https://boardly-git-server-rares-projects-5c5d3702.vercel.app',
+    'http://localhost:5173'
   ],
   credentials: true,
 }));
