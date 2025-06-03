@@ -65,13 +65,34 @@
               <button v-if="canRemoveMember(member)" class="btn btn-member-remove" @click="removeMember(member._id)">Remove</button>
             </div>
           </div>
+          <div v-if="pendingInvites.length" class="pending-list">
+            <div class="pending-title">Pending Invitations</div>
+            <div v-for="user in pendingInvites" :key="user._id" class="member-row pending-row">
+              <span class="member-avatar">{{ user.username ? user.username.charAt(0).toUpperCase() : '?' }}</span>
+              <span class="member-name">{{ user.username || user._id }} <span class="member-email">({{ user.email || '' }})</span></span>
+              <span class="pending-badge">Pending</span>
+              <button
+                v-if="auth.user && (boardOwnerId === auth.user._id || user.invitedBy === auth.user._id)"
+                class="btn btn-cancel-invite"
+                @click="cancelInvite(user._id)"
+                title="Cancel invitation"
+              >🗑️</button>
+            </div>
+          </div>
           <div class="add-member-section">
             <input v-model="userSearch" placeholder="Search users..." @input="searchUsers" class="member-search-input" />
             <div v-if="userSearchLoading" class="search-results">Searching...</div>
             <div v-else-if="userSearchResults.length" class="search-results">
               <div v-for="user in userSearchResults" :key="user._id" class="search-result-row">
                 <span>{{ user.username }} <span class="member-email">({{ user.email }})</span></span>
-                <button class="btn btn-member-add" @click="addMember(user._id)">Invite</button>
+                <button
+                  class="btn btn-member-add"
+                  :disabled="pendingInvites.includes(user._id)"
+                  @click="addMember(user._id)"
+                  v-tooltip="pendingInvites.includes(user._id) ? 'User already invited' : 'Send invitation to join this board'"
+                >
+                  {{ pendingInvites.includes(user._id) ? 'Invited' : 'Invite' }}
+                </button>
               </div>
             </div>
             <div v-else-if="userSearchNoResults && userSearch" class="search-results">No users found.</div>
@@ -86,8 +107,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import api from '@/api';
+import { useToast } from 'vue-toastification';
+import { useAuthStore } from '@/store';
+
+const toast = useToast();
+const auth = useAuthStore();
 
 const boards = ref([]);
 const loading = ref(false);
@@ -110,6 +136,8 @@ const userSearchResults = ref([]);
 const currentBoardId = ref(null);
 const userSearchLoading = ref(false);
 const userSearchNoResults = ref(false);
+const pendingInvites = ref([]);
+const boardOwnerId = ref(null);
 let searchTimeout = null;
 
 const fetchBoards = async () => {
@@ -159,6 +187,8 @@ function openMembersModal(board) {
   currentBoardId.value = board._id;
   showMembersModal.value = true;
   fetchBoardMembers();
+  fetchPendingInvites();
+  fetchBoardOwner();
 }
 function closeMembersModal() {
   showMembersModal.value = false;
@@ -197,15 +227,23 @@ async function searchUsers() {
     userSearchNoResults.value = userSearchResults.value.length === 0;
   }, 400);
 }
+async function fetchPendingInvites() {
+  if (!currentBoardId.value) return;
+  try {
+    const res = await api.get(`/api/invitations/board/${currentBoardId.value}`);
+    // Each invite has toUser: { _id, username, email }
+    pendingInvites.value = res.data.map(i => i.toUser);
+  } catch {}
+}
 async function addMember(userId) {
   try {
     await api.post('/api/invitations', { toUser: userId, board: currentBoardId.value });
     userSearch.value = '';
     userSearchResults.value = [];
-    // Optionally show a success message
-    alert('Invitation sent!');
+    fetchPendingInvites();
+    toast.success('Invitation sent!');
   } catch (e) {
-    alert(e?.response?.data?.message || 'Failed to send invitation.');
+    toast.error(e?.response?.data?.message || 'Failed to send invitation.');
   }
 }
 async function removeMember(userId) {
@@ -216,6 +254,28 @@ function canRemoveMember(member) {
   // Only allow removing if you are the owner or it's yourself
   // (You can enhance this logic as needed)
   return true;
+}
+
+async function fetchBoardOwner() {
+  if (!currentBoardId.value) return;
+  try {
+    const res = await api.get(`/api/boards/${currentBoardId.value}`);
+    boardOwnerId.value = res.data.owner;
+  } catch {}
+}
+
+async function cancelInvite(userId) {
+  // Find the invite for this user
+  try {
+    const res = await api.get(`/api/invitations/board/${currentBoardId.value}`);
+    const invite = res.data.find(i => i.toUser._id === userId);
+    if (!invite) return toast.error('Invite not found');
+    await api.delete(`/api/invitations/${invite._id}`);
+    toast.success('Invitation cancelled');
+    fetchPendingInvites();
+  } catch {
+    toast.error('Failed to cancel invitation');
+  }
 }
 
 onMounted(fetchBoards);
@@ -582,5 +642,43 @@ onMounted(fetchBoards);
   font-size: 1rem;
   box-shadow: 0 1px 4px rgba(60, 60, 60, 0.04);
   transition: border 0.2s, box-shadow 0.2s;
+}
+.pending-badge {
+  background: #ffd700;
+  color: #222;
+  border-radius: 6px;
+  padding: 0.2em 0.7em;
+  font-size: 0.95em;
+  font-weight: 700;
+  margin-left: 0.5em;
+}
+.pending-list {
+  margin-top: 1.2rem;
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+.pending-title {
+  font-weight: 700;
+  color: #888;
+  margin-bottom: 0.7em;
+  font-size: 1.08em;
+}
+.pending-row {
+  opacity: 0.7;
+}
+.btn-cancel-invite {
+  background: #fff3f3 !important;
+  color: #e74c3c !important;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3em 0.7em;
+  cursor: pointer;
+  font-size: 1.1em;
+  margin-left: 0.5em;
+  transition: background 0.18s, color 0.18s;
+}
+.btn-cancel-invite:hover {
+  background: #e74c3c !important;
+  color: #fff !important;
 }
 </style> 

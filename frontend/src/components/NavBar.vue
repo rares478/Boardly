@@ -15,7 +15,7 @@
           <div v-if="dropdownOpen" class="nav-user-dropdown">
             <div class="dropdown-item notifications-item" @click="showNotificationsModal = true; dropdownOpen = false; fetchInvitations();">
               <span>Notifications</span>
-              <span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>
+              <span v-if="notificationCount > 0" :class="['notification-badge', { 'pulse': badgePulse }]">{{ notificationCount }}</span>
             </div>
             <router-link to="/dashboard" class="dropdown-item" @click="dropdownOpen = false">Dashboard</router-link>
             <a href="#" class="dropdown-item" @click.prevent="logout">Logout</a>
@@ -33,12 +33,18 @@
         <h3>Invitations</h3>
         <div v-if="loadingInvites" class="notif-loading">Loading...</div>
         <div v-else-if="errorInvites" class="notif-error">{{ errorInvites }}</div>
-        <div v-else-if="invitations.length === 0" class="notif-empty">No invitations.</div>
+        <div v-else-if="invitations.length === 0" class="notif-empty">
+          <img src="/src/assets/empty-invite.svg" alt="No invites" class="notif-empty-img" />
+          <div>No invitations.</div>
+        </div>
         <div v-else class="notif-list">
           <div v-for="invite in invitations" :key="invite._id" class="notif-item">
             <div class="notif-info">
+              <div class="notif-board-thumb" v-if="invite.board?.coverImage">
+                <img :src="invite.board.coverImage" alt="Board cover" />
+              </div>
               <b>{{ invite.board?.title || 'Board' }}</b>
-              <span>from <b>{{ invite.fromUser?.username }}</b></span>
+              <span>from <span class="notif-avatar">{{ invite.fromUser?.username?.charAt(0).toUpperCase() }}</span> <b>{{ invite.fromUser?.username }}</b></span>
             </div>
             <div class="notif-actions">
               <button class="btn btn-primary" @click="handleAccept(invite._id)">Accept</button>
@@ -59,9 +65,11 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useAuthStore } from '@/store';
 import { useRouter } from 'vue-router';
 import api from '@/api';
+import { useToast } from 'vue-toastification';
 
 const auth = useAuthStore();
 const router = useRouter();
+const toast = useToast();
 
 const isDark = ref(false);
 const dropdownOpen = ref(false);
@@ -71,6 +79,8 @@ const showNotificationsModal = ref(false);
 const invitations = ref([]);
 const loadingInvites = ref(false);
 const errorInvites = ref('');
+const prevCount = ref(0);
+const badgePulse = ref(false);
 
 const fetchInvitations = async () => {
   if (!auth.token) return;
@@ -92,8 +102,9 @@ const handleAccept = async (inviteId) => {
     await api.post(`/api/invitations/${inviteId}/accept`);
     invitations.value = invitations.value.filter(i => i._id !== inviteId);
     notificationCount.value = invitations.value.length;
+    toast.success('Invitation accepted!');
   } catch (e) {
-    // Optionally show error
+    toast.error('Failed to accept invitation.');
   }
 };
 const handleDecline = async (inviteId) => {
@@ -101,8 +112,9 @@ const handleDecline = async (inviteId) => {
     await api.post(`/api/invitations/${inviteId}/decline`);
     invitations.value = invitations.value.filter(i => i._id !== inviteId);
     notificationCount.value = invitations.value.length;
+    toast.info('Invitation declined.');
   } catch (e) {
-    // Optionally show error
+    toast.error('Failed to decline invitation.');
   }
 };
 
@@ -132,6 +144,14 @@ watch(() => auth.token, (newVal) => {
     invitations.value = [];
     notificationCount.value = 0;
   }
+});
+
+watch(notificationCount, (newVal, oldVal) => {
+  if (newVal > oldVal) {
+    badgePulse.value = true;
+    setTimeout(() => badgePulse.value = false, 600);
+  }
+  prevCount.value = newVal;
 });
 
 // Set initial theme
@@ -250,6 +270,15 @@ const logout = () => {
   font-size: 0.95em;
   font-weight: 700;
   margin-left: 0.5em;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.notification-badge.pulse {
+  animation: badge-pulse 0.6s;
+}
+@keyframes badge-pulse {
+  0% { box-shadow: 0 0 0 0 #e74c3c77; transform: scale(1); }
+  60% { box-shadow: 0 0 0 8px #e74c3c33; transform: scale(1.18); }
+  100% { box-shadow: 0 0 0 0 #e74c3c00; transform: scale(1); }
 }
 .nav-btn {
   display: inline-block;
@@ -332,5 +361,36 @@ const logout = () => {
   margin: 1.5rem 0;
   text-align: center;
   color: #888;
+}
+.notif-board-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: 7px;
+  overflow: hidden;
+  margin-bottom: 0.3em;
+  box-shadow: 0 1px 4px rgba(60,60,60,0.10);
+}
+.notif-board-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.notif-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #41b883;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1em;
+  margin-right: 0.3em;
+}
+.notif-empty-img {
+  width: 70px;
+  opacity: 0.7;
+  margin-bottom: 0.7em;
 }
 </style> 

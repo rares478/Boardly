@@ -78,4 +78,37 @@ router.post('/:id/decline', auth, async (req, res) => {
   }
 });
 
+// Get all pending invites for a board (for board members/owners)
+router.get('/board/:boardId', auth, async (req, res) => {
+  try {
+    const board = await Board.findById(req.params.boardId);
+    if (!board || !board.members.includes(req.user.id)) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+    const invites = await Invitation.find({ board: req.params.boardId, status: 'pending' })
+      .populate('toUser', 'username email');
+    res.json(invites);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Cancel (delete) a pending invite
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const invite = await Invitation.findById(req.params.id).populate('board');
+    if (!invite) return res.status(404).json({ message: 'Invite not found' });
+    // Only board owner or the inviter can cancel
+    const isOwner = invite.board.owner?.toString?.() === req.user.id;
+    const isInviter = invite.fromUser.toString() === req.user.id;
+    if (!isOwner && !isInviter) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+    await invite.deleteOne();
+    res.json({ message: 'Invitation cancelled' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router; 
