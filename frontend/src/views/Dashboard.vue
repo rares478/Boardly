@@ -146,8 +146,8 @@ onMounted(fetchBoards);
 .board-card {
   position: relative;
   display: flex;
-  align-items: center;
-  min-height: 110px;
+  align-items: flex-end;
+  min-height: 180px;
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(60,60,60,0.10);
   transition: box-shadow 0.2s, transform 0.15s;
@@ -198,6 +198,8 @@ onMounted(fetchBoards);
 }
 /* Board cover image removed, now background */
 .board-link {
+  position: relative;
+  z-index: 2;
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--color-primary-dark);
@@ -207,12 +209,9 @@ onMounted(fetchBoards);
   border-radius: 12px;
   transition: background 0.15s;
   display: block;
-  z-index: 2;
   margin-top: 0;
   background: none;
-  position: relative;
-  /* Add padding-top to avoid overlapping the 3-dots button */
-  padding-top: 2.5rem;
+  padding-top: 0;
   pointer-events: auto;
 }
 .board-link:hover {
@@ -221,7 +220,18 @@ onMounted(fetchBoards);
 .board-link-overlay {
   color: #fff !important;
   text-shadow: 0 2px 8px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.18);
-  background: rgba(0,0,0,0.18);
+  background: none;
+}
+.board-card[style*='background-image'] {
+  background-color: #222;
+}
+.board-card[style*='background-image']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.10) 100%);
+  z-index: 1;
+  pointer-events: none;
 }
 .board-card[style*='background-image'] .board-accent {
   background: rgba(0,0,0,0.18);
