@@ -12,6 +12,7 @@ router.post('/', auth, async (req, res) => {
       description: req.body.description,
       owner: req.user.id,
       members: [req.user.id],
+      coverImage: req.body.coverImage,
     });
     await board.save();
     res.status(201).json(board);
@@ -64,7 +65,8 @@ router.put('/:id', auth, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
     board.title = req.body.title || board.title;
-    board.description = req.body.description || board.description;
+    if (req.body.description !== undefined) board.description = req.body.description;
+    if (req.body.coverImage !== undefined) board.coverImage = req.body.coverImage;
     await board.save();
     res.json(board);
   } catch (err) {
