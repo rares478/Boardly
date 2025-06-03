@@ -5,6 +5,7 @@ const boardSchema = new mongoose.Schema({
   description: { type: String },
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  coverImage: { type: String },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Board', boardSchema); 
