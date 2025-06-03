@@ -5,6 +5,20 @@ const User = require('../models/User');
 
 const router = express.Router();
 
+// Get all users (should be before any /:id route)
+router.get('/users', auth, async (req, res) => {
+  const q = req.query.q?.trim();
+  if (!q) return res.json([]);
+  const regex = new RegExp(q, 'i');
+  const users = await User.find({
+    $or: [
+      { username: regex },
+      { email: regex }
+    ]
+  }, 'username email');
+  res.json(users);
+});
+
 // Create board
 router.post('/', auth, async (req, res) => {
   try {
@@ -124,12 +138,6 @@ router.delete('/:id/members/:userId', auth, async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
-});
-
-// Get all users
-router.get('/users', auth, async (req, res) => {
-  const users = await User.find({}, 'username email');
-  res.json(users);
 });
 
 module.exports = router; 
