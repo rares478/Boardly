@@ -66,12 +66,12 @@
             </div>
           </div>
           <div class="add-member-section">
-            <input v-model="userSearch" placeholder="Search users..." @input="searchUsers" />
+            <input v-model="userSearch" placeholder="Search users..." @input="searchUsers" class="member-search-input" />
             <div v-if="userSearchLoading" class="search-results">Searching...</div>
             <div v-else-if="userSearchResults.length" class="search-results">
               <div v-for="user in userSearchResults" :key="user._id" class="search-result-row">
                 <span>{{ user.username }} <span class="member-email">({{ user.email }})</span></span>
-                <button class="btn btn-member-add" @click="addMember(user._id)">Add</button>
+                <button class="btn btn-member-add" @click="addMember(user._id)">Invite</button>
               </div>
             </div>
             <div v-else-if="userSearchNoResults && userSearch" class="search-results">No users found.</div>
@@ -198,10 +198,15 @@ async function searchUsers() {
   }, 400);
 }
 async function addMember(userId) {
-  await api.post(`/api/boards/${currentBoardId.value}/members`, { userId });
-  await fetchBoardMembers();
-  userSearch.value = '';
-  userSearchResults.value = [];
+  try {
+    await api.post('/api/invitations', { toUser: userId, board: currentBoardId.value });
+    userSearch.value = '';
+    userSearchResults.value = [];
+    // Optionally show a success message
+    alert('Invitation sent!');
+  } catch (e) {
+    alert(e?.response?.data?.message || 'Failed to send invitation.');
+  }
 }
 async function removeMember(userId) {
   await api.delete(`/api/boards/${currentBoardId.value}/members/${userId}`);
@@ -520,23 +525,27 @@ onMounted(fetchBoards);
   font-size: 0.95em;
 }
 .btn-member-remove {
-  background: #e74c3c;
-  color: #fff;
+  background: #e74c3c !important;
+  color: #fff !important;
   border: none;
   border-radius: 6px;
   padding: 0.3em 0.9em;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(60,60,60,0.07);
 }
 .btn-member-remove:hover {
-  background: #c0392b;
+  background: #c0392b !important;
+  color: #fff !important;
 }
 .add-member-section {
   margin-top: 1.2rem;
 }
 .search-results {
   margin-top: 0.5rem;
-  background: #f4f5f7;
+  background: var(--color-card);
+  color: var(--color-text);
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(60,60,60,0.07);
   padding: 0.5rem 0.7rem;
@@ -546,17 +555,32 @@ onMounted(fetchBoards);
   align-items: center;
   gap: 1rem;
   margin-bottom: 0.4rem;
+  justify-content: space-between;
 }
 .btn-member-add {
-  background: #41b883;
-  color: #fff;
+  background: #41b883 !important;
+  color: #fff !important;
   border: none;
   border-radius: 6px;
   padding: 0.3em 0.9em;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(60,60,60,0.07);
 }
 .btn-member-add:hover {
-  background: #34495e;
+  background: #369f6b !important;
+  color: #fff !important;
+}
+.member-search-input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 1.5px solid var(--color-secondary);
+  border-radius: 6px;
+  background: var(--color-card);
+  color: var(--color-text);
+  font-size: 1rem;
+  box-shadow: 0 1px 4px rgba(60, 60, 60, 0.04);
+  transition: border 0.2s, box-shadow 0.2s;
 }
 </style> 

@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const boardsRoutes = require('./routes/boards');
 const listsRoutes = require('./routes/lists');
 const cardsRoutes = require('./routes/cards');
+const invitationsRoutes = require('./routes/invitations');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -39,4 +40,5 @@ mongoose.connect(process.env.MONGO_URI)
 app.use('/api/auth', authRoutes);
 app.use('/api/boards', boardsRoutes);
 app.use('/api/lists', listsRoutes);
-app.use('/api/cards', cardsRoutes); 
+app.use('/api/cards', cardsRoutes);
+app.use('/api/invitations', invitationsRoutes); 

@@ -13,7 +13,7 @@
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <div v-if="dropdownOpen" class="nav-user-dropdown">
-            <div class="dropdown-item notifications-item">
+            <div class="dropdown-item notifications-item" @click="showNotificationsModal = true; dropdownOpen = false; fetchInvitations();">
               <span>Notifications</span>
               <span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>
             </div>
@@ -27,22 +27,84 @@
         <router-link to="/register" class="nav-btn nav-btn-filled">Register</router-link>
       </template>
     </div>
+    <!-- Notifications Modal -->
+    <div v-if="showNotificationsModal" class="modal-backdrop" @click.self="showNotificationsModal = false">
+      <div class="modal-content notifications-modal">
+        <h3>Invitations</h3>
+        <div v-if="loadingInvites" class="notif-loading">Loading...</div>
+        <div v-else-if="errorInvites" class="notif-error">{{ errorInvites }}</div>
+        <div v-else-if="invitations.length === 0" class="notif-empty">No invitations.</div>
+        <div v-else class="notif-list">
+          <div v-for="invite in invitations" :key="invite._id" class="notif-item">
+            <div class="notif-info">
+              <b>{{ invite.board?.title || 'Board' }}</b>
+              <span>from <b>{{ invite.fromUser?.username }}</b></span>
+            </div>
+            <div class="notif-actions">
+              <button class="btn btn-primary" @click="handleAccept(invite._id)">Accept</button>
+              <button class="btn btn-secondary" @click="handleDecline(invite._id)">Decline</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" @click="showNotificationsModal = false">Close</button>
+        </div>
+      </div>
+    </div>
   </nav>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useAuthStore } from '@/store';
 import { useRouter } from 'vue-router';
-import { nextTick } from 'vue';
+import api from '@/api';
 
 const auth = useAuthStore();
 const router = useRouter();
 
 const isDark = ref(false);
 const dropdownOpen = ref(false);
-const notificationCount = ref(0); // Replace with real notification count when available
+const notificationCount = ref(0);
 const dropdownRef = ref(null);
+const showNotificationsModal = ref(false);
+const invitations = ref([]);
+const loadingInvites = ref(false);
+const errorInvites = ref('');
+
+const fetchInvitations = async () => {
+  if (!auth.token) return;
+  loadingInvites.value = true;
+  errorInvites.value = '';
+  try {
+    const res = await api.get('/api/invitations');
+    invitations.value = res.data;
+    notificationCount.value = invitations.value.length;
+  } catch (e) {
+    errorInvites.value = 'Failed to load invitations.';
+  } finally {
+    loadingInvites.value = false;
+  }
+};
+
+const handleAccept = async (inviteId) => {
+  try {
+    await api.post(`/api/invitations/${inviteId}/accept`);
+    invitations.value = invitations.value.filter(i => i._id !== inviteId);
+    notificationCount.value = invitations.value.length;
+  } catch (e) {
+    // Optionally show error
+  }
+};
+const handleDecline = async (inviteId) => {
+  try {
+    await api.post(`/api/invitations/${inviteId}/decline`);
+    invitations.value = invitations.value.filter(i => i._id !== inviteId);
+    notificationCount.value = invitations.value.length;
+  } catch (e) {
+    // Optionally show error
+  }
+};
 
 const toggleTheme = () => {
   isDark.value = !isDark.value;
@@ -58,9 +120,18 @@ function handleClickOutside(event) {
 
 onMounted(() => {
   document.addEventListener('mousedown', handleClickOutside);
+  if (auth.token) fetchInvitations();
 });
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleClickOutside);
+});
+
+watch(() => auth.token, (newVal) => {
+  if (newVal) fetchInvitations();
+  else {
+    invitations.value = [];
+    notificationCount.value = 0;
+  }
 });
 
 // Set initial theme
@@ -113,10 +184,6 @@ const logout = () => {
 .theme-toggle-btn:hover {
   color: #41b883;
   background: rgba(65,184,131,0.08);
-}
-.nav-links a, .nav-links .router-link-active {
-  color: #fff;
-  text-decoration: none;
 }
 .nav-user-dropdown-wrapper {
   position: relative;
@@ -214,5 +281,56 @@ const logout = () => {
   background: #369f6b;
   border-color: #369f6b;
   color: #fff;
+}
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.25);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-content.notifications-modal {
+  background: var(--color-card);
+  color: var(--color-text);
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(60,60,60,0.13);
+  padding: 2rem 2.5rem 1.5rem 2.5rem;
+  min-width: 320px;
+  max-width: 95vw;
+  min-height: 120px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin: 1.2rem 0 0.5rem 0;
+}
+.notif-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-bg);
+  border-radius: 8px;
+  padding: 0.8rem 1.1rem;
+  box-shadow: 0 1px 4px rgba(60,60,60,0.07);
+}
+.notif-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.notif-actions {
+  display: flex;
+  gap: 0.7rem;
+}
+.notif-loading, .notif-error, .notif-empty {
+  margin: 1.5rem 0;
+  text-align: center;
+  color: #888;
 }
 </style> 
