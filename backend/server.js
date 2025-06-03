@@ -12,7 +12,10 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: ['https://boardly-psi.vercel.app'],
+  origin: [
+    'https://boardly-psi.vercel.app',
+    'https://boardly-git-server-rares-projects-5c5d3702.vercel.app/dashboard'
+  ],
   credentials: true,
 }));
 app.use(express.json());
