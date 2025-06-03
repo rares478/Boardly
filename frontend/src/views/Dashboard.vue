@@ -14,7 +14,10 @@
           <button class="board-menu-btn" @click.stop="openEditModal(board)">
             <span>⋮</span>
           </button>
-          <!-- Board cover image removed, now background -->
+          <!-- Members button -->
+          <button class="board-members-btn" @click.stop="openMembersModal(board)">
+            <span>👥</span> Members
+          </button>
           <router-link :to="`/board/${board._id}`" class="board-link" :class="{ 'board-link-overlay': board.coverImage }">{{ board.title }}</router-link>
         </div>
       </div>
@@ -49,6 +52,36 @@
         </form>
       </div>
     </div>
+    <!-- Members Modal -->
+    <div v-if="showMembersModal" class="modal-backdrop" @click.self="closeMembersModal">
+      <div class="modal-content">
+        <h3>Board Members</h3>
+        <div v-if="membersLoading">Loading...</div>
+        <div v-else>
+          <div class="members-list">
+            <div v-for="member in boardMembers" :key="member._id" class="member-row">
+              <span class="member-avatar">{{ member.username.charAt(0).toUpperCase() }}</span>
+              <span class="member-name">{{ member.username }} <span class="member-email">({{ member.email }})</span></span>
+              <button v-if="canRemoveMember(member)" class="btn btn-member-remove" @click="removeMember(member._id)">Remove</button>
+            </div>
+          </div>
+          <div class="add-member-section">
+            <input v-model="userSearch" placeholder="Search users..." @input="searchUsers" />
+            <div v-if="userSearchLoading" class="search-results">Searching...</div>
+            <div v-else-if="userSearchResults.length" class="search-results">
+              <div v-for="user in userSearchResults" :key="user._id" class="search-result-row">
+                <span>{{ user.username }} <span class="member-email">({{ user.email }})</span></span>
+                <button class="btn btn-member-add" @click="addMember(user._id)">Add</button>
+              </div>
+            </div>
+            <div v-else-if="userSearchNoResults && userSearch" class="search-results">No users found.</div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" @click="closeMembersModal">Close</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -67,6 +100,17 @@ const editBoardId = ref(null);
 const editBoardTitle = ref('');
 const editBoardDescription = ref('');
 const editBoardCoverImage = ref('');
+
+// Members modal state
+const showMembersModal = ref(false);
+const membersLoading = ref(false);
+const boardMembers = ref([]);
+const userSearch = ref('');
+const userSearchResults = ref([]);
+const currentBoardId = ref(null);
+const userSearchLoading = ref(false);
+const userSearchNoResults = ref(false);
+let searchTimeout = null;
 
 const fetchBoards = async () => {
   loading.value = true;
@@ -110,6 +154,64 @@ const saveBoardEdit = async () => {
   closeEditModal();
   fetchBoards();
 };
+
+function openMembersModal(board) {
+  currentBoardId.value = board._id;
+  showMembersModal.value = true;
+  fetchBoardMembers();
+}
+function closeMembersModal() {
+  showMembersModal.value = false;
+  boardMembers.value = [];
+  userSearch.value = '';
+  userSearchResults.value = [];
+  currentBoardId.value = null;
+}
+async function fetchBoardMembers() {
+  if (!currentBoardId.value) return;
+  membersLoading.value = true;
+  try {
+    const res = await api.get(`/api/boards/${currentBoardId.value}/members`);
+    boardMembers.value = res.data;
+  } finally {
+    membersLoading.value = false;
+  }
+}
+async function searchUsers() {
+  if (searchTimeout) clearTimeout(searchTimeout);
+  userSearchLoading.value = true;
+  userSearchNoResults.value = false;
+  if (!userSearch.value.trim()) {
+    userSearchResults.value = [];
+    userSearchLoading.value = false;
+    userSearchNoResults.value = false;
+    return;
+  }
+  searchTimeout = setTimeout(async () => {
+    const res = await api.get(`/api/boards/users?q=${encodeURIComponent(userSearch.value)}`);
+    // Filter out users already in the board
+    userSearchResults.value = res.data.filter(u =>
+      !boardMembers.value.some(m => m._id === u._id)
+    );
+    userSearchLoading.value = false;
+    userSearchNoResults.value = userSearchResults.value.length === 0;
+  }, 400);
+}
+async function addMember(userId) {
+  await api.post(`/api/boards/${currentBoardId.value}/members`, { userId });
+  await fetchBoardMembers();
+  userSearch.value = '';
+  userSearchResults.value = [];
+}
+async function removeMember(userId) {
+  await api.delete(`/api/boards/${currentBoardId.value}/members/${userId}`);
+  await fetchBoardMembers();
+}
+function canRemoveMember(member) {
+  // Only allow removing if you are the owner or it's yourself
+  // (You can enhance this logic as needed)
+  return true;
+}
 
 onMounted(fetchBoards);
 </script>
@@ -367,5 +469,94 @@ onMounted(fetchBoards);
     padding: 1.2rem 0.7rem 1.2rem 0.7rem;
     min-width: 0;
   }
+}
+/* Members button */
+.board-members-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.85);
+  border: none;
+  border-radius: 8px;
+  padding: 0.3rem 0.8rem;
+  font-size: 1rem;
+  color: #34495e;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 1px 4px rgba(60,60,60,0.07);
+  opacity: 0.92;
+  transition: background 0.15s, color 0.15s;
+}
+.board-members-btn:hover {
+  background: #e0e0e0;
+  color: #41b883;
+}
+.members-list {
+  margin-bottom: 1rem;
+}
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+.member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #41b883;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.member-name {
+  flex: 1;
+}
+.member-email {
+  color: #888;
+  font-size: 0.95em;
+}
+.btn-member-remove {
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3em 0.9em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-member-remove:hover {
+  background: #c0392b;
+}
+.add-member-section {
+  margin-top: 1.2rem;
+}
+.search-results {
+  margin-top: 0.5rem;
+  background: #f4f5f7;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(60,60,60,0.07);
+  padding: 0.5rem 0.7rem;
+}
+.search-result-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.4rem;
+}
+.btn-member-add {
+  background: #41b883;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3em 0.9em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-member-add:hover {
+  background: #34495e;
 }
 </style> 
