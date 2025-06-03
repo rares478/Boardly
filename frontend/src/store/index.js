@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '@/api';
 import Cookies from 'js-cookie';
 
 export const useAuthStore = defineStore('auth', {
@@ -14,7 +14,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true;
       this.error = null;
       try {
-        const res = await axios.post('/api/auth/login', { email, password });
+        const res = await api.post('/api/auth/login', { email, password });
         this.token = res.data.token;
         Cookies.set('token', this.token, { expires: 7 }); // 7 days
         this.user = this.parseJwt(this.token);
@@ -28,7 +28,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true;
       this.error = null;
       try {
-        const res = await axios.post('/api/auth/register', { username, email, password });
+        const res = await api.post('/api/auth/register', { username, email, password });
         this.token = res.data.token;
         Cookies.set('token', this.token, { expires: 7 });
         this.user = this.parseJwt(this.token);
